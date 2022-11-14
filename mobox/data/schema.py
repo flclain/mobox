@@ -57,13 +57,18 @@ class Scenario:
 
     @property
     def focused_tracks(self):
-        """Return full length tracks."""
-        # N = len(self.timestamps)
-        # return [x for x in self.tracks if x.filter(pl.col("is_focused") == 1).shape[0] == N]
-        return [x for x in self.tracks if x[0, "is_focused"] == 1]
+        """Return tracks to predict."""
+        return [x for x in self.tracks if x[0, "is_focused"]]
 
     def __str__(self):
         return f"[SCENARIO id: {self.scenario_id} track_len: {len(self.timestamps)} num_agents: {len(self.tracks)}]"
+
+    @property
+    def ego_track(self):
+        """Return ego track."""
+        for track in self.tracks:
+            if track[0, "is_ego"]:
+                return track
 
     def __repr__(self):
         return self.__str__()

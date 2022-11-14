@@ -9,8 +9,8 @@ from mobox.data.schema import Scenario, VRUType
 
 
 MAP_FIELD_NAMES = ["id", "px", "py", "type", "sub_type"]
-AGENT_FIELD_NAMES = ["timestamp", "px", "py", "yaw", "vx", "vy", "speed",
-                     "length", "width", "object_type", "track_id", "is_vru", "is_valid", "is_ego", "is_focused"]
+AGENT_FIELD_NAMES = ["timestamp", "px", "py", "yaw", "vx", "vy", "speed", "length",
+                     "width", "object_type", "track_id", "is_vru", "is_valid", "is_ego", "is_focused"]
 
 MapRow = namedtuple(typename="MapRow", field_names=MAP_FIELD_NAMES)
 AgentRow = namedtuple(typename="AgentRow", field_names=AGENT_FIELD_NAMES)
@@ -22,33 +22,19 @@ class WaymoScenarioGenerator:
         self.pb_files = glob.glob(
             f"{self.cfg.DATA.ROOT}/uncompressed/scenario/training/*", recursive=False)
 
-    def parse_lanes(self, scenario_pb):
+    def parse_map(self, scenario_pb):
         rows = []
         for x in scenario_pb.map_features:
-            if not x.WhichOneof("feature_data") == "lane":
+            type = x.WhichOneof("feature_data")
+            if type not in ["lane", "road_edge", "road_line"]:
                 continue
-            for point in x.lane.polyline:
-                row = MapRow(
-                    id=x.id,
-                    type="lane",
-                    sub_type=x.lane.type,
-                    px=point.x,
-                    py=point.y,
-                )
-                rows.append(row)
-        df = pl.from_records(rows, columns=MapRow._fields)
-        return df
 
-    def parse_boundaries(self, scenario_pb):
-        rows = []
-        for x in scenario_pb.map_features:
-            if not x.WhichOneof("feature_data") == "road_edge":
-                continue
-            for point in x.road_edge.polyline:
+            polyline = getattr(x, type).polyline
+            for point in polyline:
                 row = MapRow(
                     id=x.id,
-                    type="road_edge",
-                    sub_type=x.road_edge.type,
+                    type=type,
+                    sub_type=getattr(x, type).type,
                     px=point.x,
                     py=point.y,
                 )
@@ -63,6 +49,7 @@ class WaymoScenarioGenerator:
 
         rows = []
         for i, track in enumerate(scenario_pb.tracks):
+            is_ego = (i == ego_idx)
             for ts, state in zip(timestamps, track.states):
                 row = AgentRow(
                     timestamp=ts,
@@ -75,25 +62,24 @@ class WaymoScenarioGenerator:
                     length=state.length,
                     width=state.width,
                     object_type=track.object_type,
-                    track_id=track.id,
+                    track_id=(-1 if is_ego else track.id),
                     is_valid=state.valid,
-                    is_ego=(i == ego_idx),
+                    is_ego=is_ego,
                     is_vru=(track.object_type in VRUType),
-                    is_focused=(i in tracks_to_predict),
+                    is_focused=(i in tracks_to_predict or is_ego),
                 )
                 rows.append(row)
         df = pl.from_records(rows, columns=AgentRow._fields)
         return df
 
     def parse_scenario_from_pb(self, scenario_pb):
-        lanes = self.parse_lanes(scenario_pb)
-        boundaries = self.parse_boundaries(scenario_pb)
+        map = self.parse_map(scenario_pb)
         tracks = self.parse_tracks(scenario_pb)
         scenario = Scenario()
         scenario.scenario_id = scenario_pb.scenario_id
         scenario.timestamps = [int(1000*x) for x in list(scenario_pb.timestamps_seconds)]
         scenario.tracks = tracks.partition_by("track_id")
-        scenario.map = pl.concat([lanes, boundaries])
+        scenario.map = map
         return scenario
 
     @property
@@ -116,5 +102,4 @@ if __name__ == "__main__":
     gen = WaymoScenarioGenerator(cfg)
     for scenario in gen.scenarios:
         print(scenario)
-        print(scenario.focused_tracks)
-        break
+        # print(scenario.focused_tracks)
