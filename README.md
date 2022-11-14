@@ -10,3 +10,9 @@ mobox is an open motion prediction toolbox for autonomous driving.
 ### Models
 - [Wayformer](https://arxiv.org/abs/2207.05844)
 
+
+### Setup
+```bash
+source scripts/setup.sh
+bash mobox/data/protos/build.sh
+```
