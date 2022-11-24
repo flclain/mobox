@@ -1,7 +1,7 @@
 import glob
 import math
+import random
 import polars as pl
-import tensorflow as tf
 
 from collections import namedtuple
 from mobox.data.protos import scenario_pb2
@@ -20,7 +20,7 @@ class WaymoScenarioGenerator:
     def __init__(self, cfg):
         self.cfg = cfg
         self.pb_files = glob.glob(
-            f"{self.cfg.DATA.ROOT}/uncompressed/scenario/training/*", recursive=False)
+            f"{self.cfg.DATA.ROOT}/uncompressed/scenario/training/*.pb", recursive=False)
 
     def parse_map(self, scenario_pb):
         rows = []
@@ -57,7 +57,7 @@ class WaymoScenarioGenerator:
                     py=state.center_y,
                     vx=state.velocity_x,
                     vy=state.velocity_y,
-                    speed=math.sqrt(state.velocity_x**2 + state.velocity_y**2),
+                    speed=math.hypot(state.velocity_x, state.velocity_y),
                     yaw=state.heading,
                     length=state.length,
                     width=state.width,
@@ -72,7 +72,10 @@ class WaymoScenarioGenerator:
         df = pl.from_records(rows, columns=AgentRow._fields)
         return df
 
-    def parse_scenario_from_pb(self, scenario_pb):
+    def parse_scenario_from_pb(self, pb_file):
+        scenario_pb = scenario_pb2.Scenario()
+        with open(pb_file, "rb") as f:
+            scenario_pb.ParseFromString(f.read())
         map = self.parse_map(scenario_pb)
         tracks = self.parse_tracks(scenario_pb)
         scenario = Scenario()
@@ -85,15 +88,17 @@ class WaymoScenarioGenerator:
     @property
     def scenarios(self):
         for pb_file in self.pb_files:
-            record = tf.data.TFRecordDataset(pb_file)
-            for x in record:
-                scenario_pb = scenario_pb2.Scenario()
-                scenario_pb.ParseFromString(x.numpy())
-                scenario = self.parse_scenario_from_pb(scenario_pb)
-                yield scenario
+            scenario = self.parse_scenario_from_pb(pb_file)
+            yield scenario
+
+    def get(self):
+        pb_file = random.choice(self.pb_files)
+        scenario = self.parse_scenario_from_pb(pb_file)
+        track_id = random.choice(scenario.focused_track_ids)
+        return scenario, track_id
 
     def __len__(self):
-        return 100
+        return 10000
 
 
 if __name__ == "__main__":
@@ -102,4 +107,3 @@ if __name__ == "__main__":
     gen = WaymoScenarioGenerator(cfg)
     for scenario in gen.scenarios:
         print(scenario)
-        break

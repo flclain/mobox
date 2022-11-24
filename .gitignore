@@ -1,2 +1,5 @@
 **/*.pyc
+**/*.pth
+**/*.svg
+**/*.hdf5
 **/*tfrecord*
