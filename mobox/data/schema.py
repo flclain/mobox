@@ -56,19 +56,25 @@ class Scenario:
         raise Exception(f"Not found track_id {track_id} in scenario.")
 
     @property
-    def focused_tracks(self):
-        """Return tracks to predict."""
-        return [x for x in self.tracks if x[0, "is_focused"]]
-
-    def __str__(self):
-        return f"[SCENARIO id: {self.scenario_id} track_len: {len(self.timestamps)} num_agents: {len(self.tracks)}]"
-
-    @property
     def ego_track(self):
         """Return ego track."""
         for track in self.tracks:
             if track[0, "is_ego"]:
                 return track
+        raise Exception(f"Not found ego track in scenario.")
+
+    @property
+    def focused_tracks(self):
+        """Return tracks to predict."""
+        return [x for x in self.tracks if x[0, "is_focused"]]
+
+    @property
+    def focused_track_ids(self):
+        """Return focused track ids."""
+        return [x[0, "track_id"] for x in self.tracks if x[0, "is_focused"]]
+
+    def __str__(self):
+        return f"[SCENARIO id: {self.scenario_id} track_len: {len(self.timestamps)} num_agents: {len(self.tracks)}]"
 
     def __repr__(self):
         return self.__str__()

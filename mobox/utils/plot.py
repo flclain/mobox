@@ -8,8 +8,10 @@ def get_color(idx):
 
 
 def get_style_map():
-    # Map element type to line style & color.
-    # Reference: https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/protos/map.proto
+    """Map element type to line style & color.
+
+    Reference: https://github.com/waymo-research/waymo-open-dataset/blob/master/waymo_open_dataset/protos/map.proto
+    """
     style_map = {
         # Freeway.
         ("lane", 1): ["--", "grey"],

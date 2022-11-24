@@ -22,8 +22,6 @@ message Map {
   // A set of dynamic states per time step. These are ordered in consecutive
   // time steps.
   repeated DynamicState dynamic_states = 2;
-
-
 }
 
 message DynamicState {

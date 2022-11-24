@@ -102,4 +102,4 @@ if __name__ == "__main__":
     gen = WaymoScenarioGenerator(cfg)
     for scenario in gen.scenarios:
         print(scenario)
-        # print(scenario.focused_tracks)
+        break
