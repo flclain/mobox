@@ -10,24 +10,32 @@ class MapEncoder:
     def __init__(self, cfg):
         self.cfg = cfg
 
-    def _split_polyline(self, points):
+    def _split_polyline(self, df_polyline):
         """Split polyline into smaller segments with defined maximum length.
 
         Args:
-          points: (np.array) polyline points, sized [N,2].
+          df_polyline: (pl.DataFrame) map element polyline.
 
         Returns:
-          (np.array) smaller segments, sized [M,L,2].
+          (np.array) smaller segments, sized [M,L,3], the last dimension is valid mask.
 
         Reference:
           https://github.com/nachiket92/PGP/blob/main/datasets/nuScenes/nuScenes_vector.py#L394
         """
-        N = len(points)
+        points = df_polyline[["px", "py"]].to_numpy()  # [N,2]
+
+        # Interpolate.
+        INTERP_INTERVAL = self.cfg.FEATURE.POLYLINE_INTERP_INTERVAL
+        interp = interp_polyline_by_fixed_interval(points, interval=INTERP_INTERVAL)
+
+        # Split.
+        N = len(interp)
         L = int(self.cfg.FEATURE.MAX_POLYLINE_LEN / self.cfg.FEATURE.POLYLINE_INTERP_INTERVAL)
         M = N // L if N % L == 0 else N // L + 1
-        segments = np.zeros((M*L, 2))
-        segments[:N] = points
-        return segments.reshape(M, L, 2)
+        segments = np.zeros((M*L, 3))
+        segments[:N, :2] = interp
+        segments[:N, 2] = 1
+        return segments.reshape(M, L, 3)
 
     def _encode_polyline(self, df_polyline, pos):
         """Encode polyline.
@@ -53,6 +61,7 @@ class MapEncoder:
         interp = interp_polyline_by_fixed_interval(points, interval=INTERP_INTERVAL)
         # Split into segments.
         segments = self._split_polyline(interp)  # [M,L,2]
+
         # Segments to vector.
         L = segments.shape[1]
         start_vec = segments[:, :L-1, :]
@@ -82,20 +91,19 @@ class MapEncoder:
           pos: (np.array) target agent pose of (origin_x, origin_y, heading), sized [1,3].
 
         Returns:
-          (np.array) encoded map features, sized [num_segments, num_points, 4+1], the last dimension is valid mask.
+          (np.array) encoded map features, sized [S,L,D], S=num_segments, L=num_polyline_points.
         """
-        M = self.cfg.FEATURE.MAX_NUM_MAP_FEATS
-        feats = [self._encode_polyline(x, pos) for x in df_map.partition_by("id") if len(x) > 1]
-        feats = np.concatenate(feats, 0)
-        N, L, D = feats.shape
+        segments = [self._split_polyline(x) for x in df_map.partition_by("id") if len(x) > 1]
+        segments = np.concatenate(segments, 0)  # [S,L,D]
 
         # Sort map segments by distance to target.
-        # feats = self._sort_polylines(feats)
+        # segments = self._sort_polylines(segments)
 
-        # Append valid mask.
-        feats = np.concatenate([feats, np.ones((N, L, 1))], axis=-1)
+        # Transform coordinates.
+        points = CoordinateTransform.transform_points(segments[:, :, :2], pos)
+        points[segments[:, :, 2] == 0] = 0
 
-        # Padding.
-        feats = feats[:M, :, :] if N > M else np.concatenate(
-            [feats, np.zeros((M-N, L, D+1))], axis=0)
+        start_vec = points[:, :-1, :]
+        end_vec = points[:, 1:, :]
+        feats = np.concatenate([start_vec, end_vec], axis=2)
         return feats
