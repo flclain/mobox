@@ -79,9 +79,10 @@ class WaymoFeatureGenerator:
           track_id: (int) target agent track id.
 
         Returns:
-          (np.array) encoded map features, sized [num_points, num_segments, D].
+          (np.array) encoded map features, sized [1,S_r,D].
         """
         H = self.cfg.TRACK.HISTORY_SIZE
+        M = self.cfg.FEATURE.MAX_NUM_MAP_FEATS
         R = self.cfg.FEATURE.AGENT_NEARBY_RADIUS
         track = scenario.query_track_by_id(track_id)
         pos = track[H, ["px", "py", "yaw"]].to_numpy()
@@ -90,7 +91,14 @@ class WaymoFeatureGenerator:
         if len(df_map) == 0:
             return None
         feats = self.map_encoder.encode(df_map, pos)
-        feats = rearrange(feats, "S T D -> T S D")
+        S, L, D = feats.shape
+        feats = feats[:M, :, :] if S > M else np.concatenate([feats, np.zeros((M-S, L, D))], axis=0)
+        feats = rearrange(feats, "S L D -> 1 S (L D)")
+
+        # Append valid mask.
+        mask = np.zeros((1, M, 1))
+        mask[:, :S, :] = 1
+        feats = np.concatenate([feats, mask], axis=-1)
         return feats.astype(np.float32)
 
     def traffic_light_stats(self, scenario):

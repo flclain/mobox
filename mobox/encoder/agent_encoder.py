@@ -41,8 +41,13 @@ class AgentEncoder:
         yaw = CoordinateTransform.transform_angles(yaw, pos)
         vel = CoordinateTransform.transform_vector(vel, pos)
 
+        points[valid == 0] = 0
+        yaw[valid == 0] = 0
+        vel[valid == 0] = 0
+
         feats = np.concatenate([points, yaw[:, :, None], vel, valid[:, :, None]], axis=2)  # [N,T,D]
         start_vec = feats[:, :-1, :2]
         end_vec = feats[:, 1:, :]
         feats = np.concatenate([start_vec, end_vec], axis=2)
         return feats
+
