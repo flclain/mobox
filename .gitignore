@@ -3,3 +3,4 @@
 **/*.svg
 **/*.hdf5
 **/*tfrecord*
+runs/*

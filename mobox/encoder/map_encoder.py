@@ -37,37 +37,6 @@ class MapEncoder:
         segments[:N, 2] = 1
         return segments.reshape(M, L, 3)
 
-    def _encode_polyline(self, df_polyline, pos):
-        """Encode polyline.
-
-        It does the followings:
-          1. Transform map element polyline points to target agent coordinate frame.
-          2. Interpolate polylines.
-          3. Split polylines into smaller segments with defined maximum length.
-          4. Encode polyline as vector.
-
-        Args:
-          df_polyline: (pl.DataFrame) map element polyline.
-          pos: (np.array) target agent pose of (origin_x, origin_y, heading), sized [1,3].
-
-        Returns:
-          (np.array) vector representation of polyline, sized [M,L,2].
-        """
-        INTERP_INTERVAL = self.cfg.FEATURE.POLYLINE_INTERP_INTERVAL
-        points = df_polyline[["px", "py"]].to_numpy()  # [N,2]
-        # Transform coordinates.
-        points = CoordinateTransform.transform_points(points[None, :, :], pos)[0]
-        # Interpolate.
-        interp = interp_polyline_by_fixed_interval(points, interval=INTERP_INTERVAL)
-        # Split into segments.
-        segments = self._split_polyline(interp)  # [M,L,2]
-
-        # Segments to vector.
-        L = segments.shape[1]
-        start_vec = segments[:, :L-1, :]
-        end_vec = segments[:, 1:, :]
-        return np.concatenate([start_vec, end_vec], axis=2)
-
     def _sort_polylines(self, polylines):
         """Sort map polylines by its middle point distance to target agent.
 
@@ -85,6 +54,12 @@ class MapEncoder:
 
     def encode(self, df_map, pos):
         """Encode scenario map to features.
+
+        It does the followings:
+          1. Split polylines into smaller segments with defined maximum length.
+          2. Interpolate segments.
+          3. Transform map element polyline points to target agent coordinate frame.
+          4. Encode polyline as vector.
 
         Args:
           df_map: (pl.DataFrame) map data frame.
