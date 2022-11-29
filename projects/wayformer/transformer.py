@@ -21,13 +21,20 @@ from mobox.layers.position_encoding import get_sine_pos_embed
 
 
 class Transformer(nn.Module):
-    def __init__(self, d_model, num_heads=4, num_layers=4):
+    def __init__(self, d_model, num_heads=2, num_layers=2):
         super().__init__()
         encoder_layer = TransformerEncoderLayer(d_model, num_heads, dim_feedforward=1024, dropout=0)
         self.encoder = TransformerEncoder(encoder_layer, num_layers)
 
         decoder_layer = TransformerDecoderLayer(d_model, num_heads, dim_feedforward=1024, dropout=0)
         self.decoder = TransformerDecoder(decoder_layer, num_layers)
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for p in self.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
 
     def forward(self, x, attn_mask, query_embed, pos_embed):
         N = x.size(0)
@@ -114,7 +121,6 @@ class TransformerDecoder(nn.Module):
                           cross_key_pos=key_pos,
                           cross_attn_mask=cross_attn_mask,
                           cross_key_padding_mask=cross_key_padding_mask)
-
         if self.norm is not None:
             query = self.norm(query)
         return query

@@ -52,13 +52,13 @@ _C.DATA = CfgNode()
 _C.DATA.ROOT = "./data/waymo_open_dataset_motion_v_1_1_0"
 
 # Number of data loader workers per training process.
-_C.DATA.NUM_WORKERS = 2
+_C.DATA.NUM_WORKERS = 0
 
 # Load data to pinned host memory.
 _C.DATA.PIN_MEMORY = True
 
 # Dataset class name
-_C.DATA.DATASET = "MotionDataset"
+_C.DATA.DATASET = "WaymoDataset"
 
 # -----------------------------------------------------------------------------
 # Model options
@@ -69,7 +69,7 @@ _C.MODEL = CfgNode()
 _C.MODEL.MODEL_NAME = "Wayformer"
 
 # Number of output gmm modes.
-_C.MODEL.GMM_MODES = 64
+_C.MODEL.OUTPUT_MODES = 64
 
 # -----------------------------------------------------------------------------
 # Solver options
@@ -77,7 +77,7 @@ _C.MODEL.GMM_MODES = 64
 _C.SOLVER = CfgNode()
 
 # Base learning rate.
-_C.SOLVER.BASE_LR = 1e-4
+_C.SOLVER.BASE_LR = 2e-4
 
 # Learning rate policy (see utils/lr_policy.py for options and examples).
 _C.SOLVER.LR_POLICY = "cosine"
@@ -208,7 +208,7 @@ _C.FEATURE.AGENT_NEARBY_RADIUS = 80
 _C.FEATURE.POLYLINE_INTERP_INTERVAL = 0.5
 
 # Max polyline length, in meters.
-_C.FEATURE.MAX_POLYLINE_LEN = 20
+_C.FEATURE.MAX_POLYLINE_LEN = 30
 
 # Max number of map elements.
 _C.FEATURE.MAX_NUM_MAP_FEATS = 320

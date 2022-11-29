@@ -50,6 +50,7 @@ class WaymoScenarioGenerator:
         rows = []
         for i, track in enumerate(scenario_pb.tracks):
             is_ego = (i == ego_idx)
+            is_vru = (track.object_type in VRUType)
             for ts, state in zip(timestamps, track.states):
                 row = AgentRow(
                     timestamp=ts,
@@ -65,8 +66,8 @@ class WaymoScenarioGenerator:
                     track_id=(-1 if is_ego else track.id),
                     is_valid=state.valid,
                     is_ego=is_ego,
-                    is_vru=(track.object_type in VRUType),
-                    is_focused=(i in tracks_to_predict or is_ego),
+                    is_vru=is_vru,
+                    is_focused=(i in tracks_to_predict and not is_vru) or is_ego,
                 )
                 rows.append(row)
         df = pl.from_records(rows, columns=AgentRow._fields)
@@ -107,3 +108,4 @@ if __name__ == "__main__":
     gen = WaymoScenarioGenerator(cfg)
     for scenario in gen.scenarios:
         print(scenario)
+        print(scenario.focused_tracks)

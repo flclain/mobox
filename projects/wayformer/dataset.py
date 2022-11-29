@@ -19,7 +19,7 @@ class WaymoDataset(data.Dataset):
         self.feat_gen = WaymoFeatureGenerator(cfg)
         self.scen_gen = WaymoScenarioGenerator(cfg)
         self.N = len(self.scen_gen)
-        # self.mean_std = torch.load("./cache/mean_std.pth")
+        self.mean_std = torch.load("./cache/mean_std.pth")
 
     @valid_return
     def __getitem__(self, idx):
@@ -31,31 +31,23 @@ class WaymoDataset(data.Dataset):
             return None
         return {"agent": agent_feats, "nearby": nearby_feats, "map": map_feats}
 
-    # def zero_mean(self, batch):
-    #     H = self.cfg.TRACK.HISTORY_SIZE + 1
-    #     agent, nearby, map = batch["agent"], batch["nearby"], batch["map"]
-    #
-    #     agent = batch["agent"]
-    #     mean = self.mean_std["agent_mean"][:H, None, :]
-    #     std = self.mean_std["agent_std"][:H, None, :].clamp(min=1)
-    #     agent.tensor = (agent.tensor - mean) / std
-    #
-    #     mean = self.mean_std["nearby_mean"][:H, None, :]
-    #     std = self.mean_std["nearby_std"][:H, None, :].clamp(min=1)
-    #     nearby.tensor = (nearby.tensor - mean) / std
-    #
-    #     mean = self.mean_std["map_mean"][:, None, :]
-    #     std = self.mean_std["map_std"][:, None, :].clamp(min=1)
-    #     map.tensor = (map.tensor - mean) / std
-    #     return batch
-    #
-    # def backup_location(self, batch):
-    #     x_agent = batch["agent"].tensor[:, -1, :, :2]     # [N,1,2]
-    #     x_nearby = batch["nearby"].tensor[:, -1, :, :2]   # [N,S,2]
-    #     x_map = batch["map"].tensor[:, 0, :, :2]          # [N,S,2]
-    #     x = torch.cat([x_agent, x_nearby, x_map], dim=1)  # [N,L,2]
-    #     batch["loc"] = x
-    #     return batch
+    def zero_mean(self, batch):
+        H = self.cfg.TRACK.HISTORY_SIZE + 1
+        agent, nearby, map = batch["agent"], batch["nearby"], batch["map"]
+
+        agent = batch["agent"]
+        mean = self.mean_std["agent_mean"][:H, None, :]
+        std = self.mean_std["agent_std"][:H, None, :].clamp(min=1)
+        agent.tensor = (agent.tensor - mean) / std
+
+        mean = self.mean_std["nearby_mean"][:H, None, :]
+        std = self.mean_std["nearby_std"][:H, None, :].clamp(min=1)
+        nearby.tensor = (nearby.tensor - mean) / std
+
+        mean = self.mean_std["map_mean"][:, None, :]
+        std = self.mean_std["map_std"][:, None, :].clamp(min=1)
+        map.tensor = (map.tensor - mean) / std
+        return batch
 
     def collate_fn(self, batch):
         H = self.cfg.TRACK.HISTORY_SIZE
@@ -75,6 +67,7 @@ class WaymoDataset(data.Dataset):
 
         batch = {"agent": agent, "nearby": nearby, "map": map,
                  "target": target, "nearby_target": nearby_target}
+        batch = self.zero_mean(batch)
         return batch
 
     def __len__(self):
@@ -99,10 +92,14 @@ def test_dataloader():
     for batch_idx, batch in enumerate(dataloader):
         print(batch_idx)
         print(batch["agent"].tensor.shape)
+        print(batch["agent"].tensor.mean([0, 1, 2]))
+        print(batch["agent"].tensor.std([0, 1, 2]))
         print(batch["nearby"].tensor.shape)
+        print(batch["nearby"].tensor.mean([0, 1, 2]))
+        print(batch["nearby"].tensor.std([0, 1, 2]))
         print(batch["map"].tensor.shape)
-        print(batch["target"].tensor.shape)
-        print(batch["nearby_target"].tensor.shape)
+        print(batch["map"].tensor.mean([0, 1, 2]))
+        print(batch["map"].tensor.std([0, 1, 2]))
         break
 
 

@@ -11,15 +11,6 @@ class MLP(nn.Module):
         output_dim = [hidden_dim] * (num_layers-1) + [output_dim]
         self.layers = nn.ModuleList(nn.Linear(a, b) for a, b in zip(input_dim, output_dim))
 
-        self._reset_parameters()
-
-    def _reset_parameters(self):
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-
     def forward(self, x):
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)

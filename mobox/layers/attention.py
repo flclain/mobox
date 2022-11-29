@@ -470,9 +470,9 @@ class FactorizedAttention(nn.Module):
         self.v_proj = nn.Linear(embed_dim, vdim)
         self.out_proj = nn.Linear(vdim, embed_dim)
 
-        self._reset_parameters()
+        self.reset_parameters()
 
-    def _reset_parameters(self):
+    def reset_parameters(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight)
@@ -529,9 +529,9 @@ class MyConditionalMultiHeadAttention(nn.Module):
         self.v_proj = nn.Linear(embed_dim, vdim)
         self.out_proj = nn.Linear(vdim, embed_dim)
 
-        self._reset_parameters()
+        self.reset_parameters()
 
-    def _reset_parameters(self):
+    def reset_parameters(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight)
@@ -593,9 +593,9 @@ class MyMultiHeadAttention(nn.Module):
 
         self.out_proj = nn.Linear(vdim, embed_dim)
 
-        self._reset_parameters()
+        self.reset_parameters()
 
-    def _reset_parameters(self):
+    def reset_parameters(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight)

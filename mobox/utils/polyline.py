@@ -61,5 +61,7 @@ def interp_polyline_by_fixed_interval(polyline, interval):
     if len(polyline) < 2:  # at least has 2 points
         return polyline
     length = get_polyline_length(polyline)
+    if length < interval:
+        return polyline
     num_points = math.floor(length / interval) + 1
     return interp_arc(polyline, num_points)

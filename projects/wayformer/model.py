@@ -45,10 +45,10 @@ class Wayformer(nn.Module):
         x_map = self.encoder_map(xs["map"].tensor)           # [N,1,S_r,D]
 
         # Early fusion.
-        T = x_agent.size(1)
-        x_map = repeat(x_map, "N 1 S D -> N T S D", T=T)
-        x = torch.cat([x_agent, x_nearby, x_map], dim=2)
-        x = rearrange(x, "N T S D ->  N (T S) D")
+        x_agent = x_agent.flatten(1, 2)
+        x_nearby = x_nearby.flatten(1, 2)
+        x_map = x_map.flatten(1, 2)
+        x = torch.cat([x_agent, x_nearby, x_map], dim=1)
 
         # Transformer.
         attn_mask = None

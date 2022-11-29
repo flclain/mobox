@@ -81,9 +81,9 @@ class PolylineEncoder(nn.Module):
         self.conv3 = nn.Conv1d(256, out_channels, kernel_size=1, stride=1, padding=0, bias=False)
         self.bn3 = nn.BatchNorm1d(out_channels)
 
-        self._reset_parameters()
+        self.reset_parameters()
 
-    def _reset_parameters(self):
+    def reset_parameters(self):
         for m in self.modules():
             if isinstance(m, nn.Conv1d):
                 nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
