@@ -51,8 +51,11 @@ _C.DATA = CfgNode()
 # Data root.
 _C.DATA.ROOT = "./data/waymo_open_dataset_motion_v_1_1_0"
 
+# Meta root.
+_C.DATA.META_FILE = "./csv/meta.csv"
+
 # Number of data loader workers per training process.
-_C.DATA.NUM_WORKERS = 0
+_C.DATA.NUM_WORKERS = 2
 
 # Load data to pinned host memory.
 _C.DATA.PIN_MEMORY = True
