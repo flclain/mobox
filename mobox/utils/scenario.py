@@ -43,7 +43,10 @@ def parse_tracks(scenario_pb):
     for i, track in enumerate(scenario_pb.tracks):
         is_ego = (i == ego_idx)
         is_vru = (track.object_type in VRUType)
+        last_x, last_y = track.states[0].center_x, track.states[0].center_y
         for ts, state in zip(timestamps, track.states):
+            diff = math.hypot(state.center_x - last_x, state.center_y - last_y)
+            last_x, last_y = state.center_x, state.center_y
             row = AgentRow(
                 timestamp=ts,
                 px=state.center_x,
@@ -56,7 +59,7 @@ def parse_tracks(scenario_pb):
                 width=state.width,
                 object_type=track.object_type,
                 track_id=(-1 if is_ego else track.id),
-                is_valid=state.valid,
+                is_valid=(state.valid and diff < 5),  # 50m/s = 180km/h
                 is_ego=is_ego,
                 is_vru=is_vru,
                 is_focused=(i in tracks_to_predict and not is_vru) or is_ego,

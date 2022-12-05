@@ -28,13 +28,15 @@ def get_anchors(M):
     idx = 0
     tracks = []
     for idx in range(N):
-        scenario, track_id = sg.get()
+        scenario, track_id = sg.get(balance=True)
         print(idx, scenario)
         idx += 1
         if idx == N:
             break
         scenario.tracks = [x for x in scenario.tracks if x.filter(
             pl.col("is_valid")).shape[0] == len(scenario.timestamps)]
+        if track_id not in scenario.focused_track_ids:
+            continue
         agent_feats = fg.agent_feats(scenario, track_id)
         if agent_feats is None:
             continue
@@ -42,15 +44,10 @@ def get_anchors(M):
 
     # K-means.
     Xs = np.stack(tracks, 0)  # [N,80,2]
+    # torch.save(Xs, "tracks.pth")
     km = TimeSeriesKMeans(n_clusters=M, random_state=0).fit(Xs)
     centroids = km.cluster_centers_  # [M,T,2]
-    print(centroids.shape, Xs.shape)
-
-    dists = centroids[:, None, :, :] - Xs[None, :, :, :]  # [M,N,T,2]
-    dists = (dists**2).sum(axis=(2, 3))  # [M,N]
-    row_ind, col_ind = linear_sum_assignment(dists)
-    anchors = torch.from_numpy(Xs[col_ind])
-    return anchors
+    return centroids
 
 
 if __name__ == "__main__":

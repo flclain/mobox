@@ -33,6 +33,16 @@ class Wayformer(nn.Module):
 
         self.loss = MyLoss()
 
+        d = torch.load("./cache/anchors.pth")
+        self.ref = nn.Parameter(d)
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        # Reference: https://github.com/IDEA-Research/detrex/blob/main/projects/dab_detr/modeling/dab_detr.py#L129
+        nn.init.constant_(self.reg_head.layers[-1].weight, 0)
+        nn.init.constant_(self.reg_head.layers[-1].bias, 0)
+
     def get_pos_encoding(self, x):
         N, L, D = x.shape
         pos_embed = positional_encoding(L, D)
@@ -61,7 +71,7 @@ class Wayformer(nn.Module):
         reg_out = self.reg_head(out)
         N, M = reg_out.shape[:2]
         cls_out = cls_out.squeeze(-1)
-        reg_out = reg_out.view(N, M, -1, 2)
+        reg_out = reg_out.view(N, M, -1, 2) + self.ref
 
         if self.training:
             targets = xs["target"]
