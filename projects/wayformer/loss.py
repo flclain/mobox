@@ -29,7 +29,7 @@ class MyLoss(nn.Module):
 
         # Classification loss.
         # cls_loss = F.cross_entropy(cls_out, ids)
-        soft_target = F.softmax(-dists / rep_mask.sum(dim=-1), dim=-1).detach()  # [N,M]
+        soft_target = F.softmax(-dists / mask.sum(dim=-1, keepdim=True), dim=-1).detach()  # [N,M]
         cls_loss = soft_target_cross_entropy_loss(cls_out, soft_target)
 
         # Regression loss.
@@ -38,7 +38,7 @@ class MyLoss(nn.Module):
 
         print((mu[:, -1, :]-targets[:, -1, :]).abs())
 
-        reg_loss = F.smooth_l1_loss(mu, targets)
+        reg_loss = F.smooth_l1_loss(mu[mask], targets[mask])
         loss = cls_loss + reg_loss
 
         self.count += 1
