@@ -12,8 +12,8 @@ from projects.wayformer.model import Wayformer
 from projects.wayformer.dataset import WaymoDataset
 
 from config.defaults import get_cfg
-from mobox.logger import Logger
 from mobox.models import build_model
+from mobox.utils.logger import Logger
 from mobox.datasets import construct_loader, shuffle_dataset
 
 
