@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,6 +11,16 @@ class MLP(nn.Module):
         input_dim = [input_dim] + [hidden_dim] * (num_layers-1)
         output_dim = [hidden_dim] * (num_layers-1) + [output_dim]
         self.layers = nn.ModuleList(nn.Linear(a, b) for a, b in zip(input_dim, output_dim))
+
+        # self.reset_parameters()
+
+    def reset_parameters(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                # nn.init.kaiming_uniform_(m.weight, a=math.sqrt(5))
+                nn.init.kaiming_uniform_(m.weight, mode="fan_out", nonlinearity="relu")
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
         for i, layer in enumerate(self.layers):

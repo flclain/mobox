@@ -28,8 +28,8 @@ class MyLoss(nn.Module):
         print(torch.argmax(cls_out, dim=-1))
 
         # Classification loss.
-        soft_target = F.softmax(-dists / rep_mask.sum(dim=-1), dim=-1).detach()  # [N,M]
         # cls_loss = F.cross_entropy(cls_out, ids)
+        soft_target = F.softmax(-dists / rep_mask.sum(dim=-1), dim=-1).detach()  # [N,M]
         cls_loss = soft_target_cross_entropy_loss(cls_out, soft_target)
 
         # Regression loss.

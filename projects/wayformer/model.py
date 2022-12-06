@@ -7,7 +7,7 @@ from einops import repeat, rearrange
 from mobox.layers.mlp import MLP
 from mobox.layers.position_encoding import positional_encoding
 
-from torchbox.models import MODEL_REGISTRY
+from mobox.models import MODEL_REGISTRY
 from projects.wayformer.loss import MyLoss
 from projects.wayformer.transformer import Transformer
 
@@ -82,8 +82,8 @@ class Wayformer(nn.Module):
 
 def test_model():
     from config.defaults import get_cfg
-    from torchbox.models import build_model
-    from torchbox.datasets import construct_loader
+    from mobox.models import build_model
+    from mobox.datasets import construct_loader
     from projects.wayformer.dataset import WaymoDataset
     cfg = get_cfg()
     model = build_model(cfg)

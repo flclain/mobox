@@ -1,7 +1,7 @@
 import random
 import polars as pl
 
-from torchbox.utils.decorators import valid_return
+from mobox.utils.decorators import valid_return
 from mobox.utils.scenario import parse_scenario_from_pb
 
 

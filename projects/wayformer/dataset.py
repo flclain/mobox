@@ -3,9 +3,9 @@ import numpy as np
 import polars as pl
 import torch.utils.data as data
 
-from torchbox.utils.misc import NestedTensor
-from torchbox.datasets import DATASET_REGISTRY
-from torchbox.utils.decorators import valid_return
+from mobox.utils.misc import NestedTensor
+from mobox.datasets import DATASET_REGISTRY
+from mobox.utils.decorators import valid_return
 
 from projects.wayformer.feature_generator import WaymoFeatureGenerator
 from projects.wayformer.scenario_generator import WaymoScenarioGenerator
@@ -76,7 +76,7 @@ class WaymoDataset(data.Dataset):
 
 def test_dataset():
     from config.defaults import get_cfg
-    from torchbox.datasets import build_dataset, DATASET_REGISTRY
+    from mobox.datasets import build_dataset, DATASET_REGISTRY
     cfg = get_cfg()
     dataset = build_dataset("WaymoDataset", cfg, "train")
     print(dataset[0])
@@ -86,7 +86,7 @@ def test_dataset():
 
 def test_dataloader():
     from config.defaults import get_cfg
-    from torchbox.datasets import construct_loader
+    from mobox.datasets import construct_loader
     cfg = get_cfg()
     dataloader = construct_loader(cfg, mode="train")
     for batch_idx, batch in enumerate(dataloader):

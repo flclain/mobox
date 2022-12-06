@@ -2,7 +2,7 @@
 import torch
 
 from config.defaults import get_cfg
-from torchbox.datasets import construct_loader
+from mobox.datasets import construct_loader
 from projects.wayformer.dataset import WaymoDataset
 
 N = 200
