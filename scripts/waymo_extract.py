@@ -5,7 +5,7 @@ import tensorflow as tf
 
 from tqdm import tqdm
 from config.defaults import get_cfg
-from mobox.data.protos import scenario_pb2
+from mobox.base.protos import scenario_pb2
 
 
 def extract(pb_file):

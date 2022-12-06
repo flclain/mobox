@@ -2,8 +2,8 @@ import math
 import polars as pl
 
 from collections import namedtuple
-from mobox.data.protos import scenario_pb2
-from mobox.data.schema import Scenario, VRUType
+from mobox.base.protos import scenario_pb2
+from mobox.base.schema import Scenario, VRUType
 
 MAP_FIELD_NAMES = ["id", "px", "py", "type", "sub_type"]
 AGENT_FIELD_NAMES = ["timestamp", "px", "py", "yaw", "vx", "vy", "speed", "length",

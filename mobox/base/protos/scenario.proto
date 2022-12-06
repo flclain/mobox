@@ -17,7 +17,7 @@ limitations under the License.
 
 syntax = "proto2";
 
-import "mobox/data/protos/map.proto";
+import "mobox/base/protos/map.proto";
 
 message ObjectState {
   // Coordinates of the center of the object bounding box.

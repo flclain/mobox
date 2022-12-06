@@ -14,5 +14,5 @@ mobox is an open motion prediction toolbox for autonomous driving.
 ### Setup
 ```bash
 source scripts/setup.sh
-bash mobox/data/protos/build.sh
+bash mobox/base/protos/build.sh
 ```

@@ -5,9 +5,9 @@ OUT_DIR=./
 python3 -m grpc_tools.protoc \
              -I=./ \
              --python_out=$OUT_DIR \
-             ./mobox/data/protos/map.proto
+             ./mobox/base/protos/map.proto
 
 python3 -m grpc_tools.protoc \
              -I=./ \
              --python_out=$OUT_DIR \
-             ./mobox/data/protos/scenario.proto
+             ./mobox/base/protos/scenario.proto
