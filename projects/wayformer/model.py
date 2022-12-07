@@ -34,7 +34,8 @@ class Wayformer(nn.Module):
         self.loss = MyLoss()
 
         d = torch.load("./cache/anchors.pth")
-        self.ref = nn.Parameter(d)
+        # self.ref = nn.Parameter(d)
+        self.register_buffer("ref", d)
 
         self.reset_parameters()
 

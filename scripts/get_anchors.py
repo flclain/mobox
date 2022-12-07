@@ -11,7 +11,7 @@ from config.defaults import get_cfg
 from projects.wayformer.feature_generator import WaymoFeatureGenerator
 from projects.wayformer.scenario_generator import WaymoScenarioGenerator
 
-N = 500
+N = 300
 
 
 def vis_tracks(tracks):
@@ -47,7 +47,7 @@ def get_anchors(M):
     # torch.save(Xs, "tracks.pth")
     km = TimeSeriesKMeans(n_clusters=M, random_state=0).fit(Xs)
     centroids = km.cluster_centers_  # [M,T,2]
-    return centroids
+    return torch.from_numpy(centroids)
 
 
 if __name__ == "__main__":
