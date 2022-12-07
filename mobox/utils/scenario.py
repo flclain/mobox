@@ -1,4 +1,5 @@
 import math
+import numpy as np
 import polars as pl
 
 from collections import namedtuple
@@ -41,12 +42,12 @@ def parse_tracks(scenario_pb):
 
     rows = []
     for i, track in enumerate(scenario_pb.tracks):
+        xys = [(state.center_x, state.center_y) for state in track.states]
+        max_diff = np.linalg.norm(np.diff(xys, axis=0), ord=2, axis=-1).max().item()
         is_ego = (i == ego_idx)
         is_vru = (track.object_type in VRUType)
-        last_x, last_y = track.states[0].center_x, track.states[0].center_y
+        is_focused = (i in tracks_to_predict and not is_vru) or is_ego
         for ts, state in zip(timestamps, track.states):
-            diff = math.hypot(state.center_x - last_x, state.center_y - last_y)
-            last_x, last_y = state.center_x, state.center_y
             row = AgentRow(
                 timestamp=ts,
                 px=state.center_x,
@@ -59,10 +60,10 @@ def parse_tracks(scenario_pb):
                 width=state.width,
                 object_type=track.object_type,
                 track_id=(-1 if is_ego else track.id),
-                is_valid=(state.valid and diff < 5),  # 50m/s = 180km/h
+                is_valid=state.valid,
                 is_ego=is_ego,
                 is_vru=is_vru,
-                is_focused=(i in tracks_to_predict and not is_vru) or is_ego,
+                is_focused=(is_focused and max_diff < 5),  # 50m/s = 180km/h
             )
             rows.append(row)
     df = pl.from_records(rows, columns=AgentRow._fields)

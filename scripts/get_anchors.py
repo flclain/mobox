@@ -4,8 +4,8 @@ import numpy as np
 import polars as pl
 import matplotlib.pyplot as plt
 
+from sklearn.cluster import KMeans
 from tslearn.clustering import TimeSeriesKMeans
-from scipy.optimize import linear_sum_assignment
 
 from config.defaults import get_cfg
 from projects.wayformer.feature_generator import WaymoFeatureGenerator
@@ -33,7 +33,7 @@ def get_anchors(M):
         idx += 1
         if idx == N:
             break
-        scenario.tracks = [x for x in scenario.tracks if x.filter(
+        scenario.tracks = [x for x in scenario.focused_tracks if x.filter(
             pl.col("is_valid")).shape[0] == len(scenario.timestamps)]
         if track_id not in scenario.focused_track_ids:
             continue
@@ -44,9 +44,9 @@ def get_anchors(M):
 
     # K-means.
     Xs = np.stack(tracks, 0)  # [N,80,2]
-    # torch.save(Xs, "tracks.pth")
-    km = TimeSeriesKMeans(n_clusters=M, random_state=0).fit(Xs)
-    centroids = km.cluster_centers_  # [M,T,2]
+    # km = TimeSeriesKMeans(n_clusters=M, random_state=0).fit(Xs)
+    km = KMeans(n_clusters=M, random_state=0).fit(Xs.reshape(len(Xs), -1))
+    centroids = km.cluster_centers_.reshape(M, -1, 2)  # [M,T,2]
     return torch.from_numpy(centroids)
 
 
