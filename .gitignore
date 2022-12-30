@@ -1,6 +1,8 @@
 **/*.pyc
 **/*.pth
 **/*.svg
+**/*.png
+**/*.jpg
 **/*.hdf5
 **/*tfrecord*
 runs/*

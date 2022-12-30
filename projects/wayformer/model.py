@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from einops import repeat, rearrange
 
 from mobox.layers.mlp import MLP
+from mobox.layers.ust import USTEncoder
 from mobox.layers.position_encoding import positional_encoding
 
 from mobox.models import MODEL_REGISTRY
@@ -21,9 +22,12 @@ class Wayformer(nn.Module):
         M = cfg.MODEL.OUTPUT_MODES
 
         d_model = 256
-        self.encoder_agent = MLP(7, d_model)
-        self.encoder_nearby = MLP(7, d_model)
-        self.encoder_map = MLP(236, d_model)
+        # self.encoder_agent = MLP(7, d_model)
+        # self.encoder_nearby = MLP(7, d_model)
+        # self.encoder_map = MLP(236, d_model)
+        self.encoder_agent = USTEncoder(10*7, d_model)
+        self.encoder_nearby = USTEncoder(10*7, d_model)
+        self.encoder_map = USTEncoder(236, d_model)
 
         self.transformer = Transformer(d_model)
         self.query_embed = nn.Embedding(M, d_model)
@@ -56,9 +60,9 @@ class Wayformer(nn.Module):
         x_map = self.encoder_map(xs["map"].tensor)           # [N,1,S_r,D]
 
         # Early fusion.
-        x_agent = x_agent.flatten(1, 2)
-        x_nearby = x_nearby.flatten(1, 2)
-        x_map = x_map.flatten(1, 2)
+        # x_agent = x_agent.flatten(1, 2)
+        # x_nearby = x_nearby.flatten(1, 2)
+        # x_map = x_map.flatten(1, 2)
         x = torch.cat([x_agent, x_nearby, x_map], dim=1)
 
         # Transformer.
