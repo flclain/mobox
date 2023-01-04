@@ -44,7 +44,7 @@ class VectorNetEncoder(nn.Module):
         return x
 
 
-def test_ust():
+def test():
     N, T, S, D = 2, 10, 5, 16
     x = torch.randn(N, T, S, D)
     m = VectorNetEncoder(D, 128)
@@ -53,4 +53,4 @@ def test_ust():
 
 
 if __name__ == "__main__":
-    test_ust()
+    test()
