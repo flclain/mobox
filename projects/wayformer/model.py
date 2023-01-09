@@ -6,6 +6,7 @@ from einops import repeat, rearrange
 
 from mobox.layers.mlp import MLP
 from mobox.layers.vectornet import VectorNetEncoder
+from mobox.layers.temporal_encoder import TemporalEncoder
 from mobox.layers.position_encoding import positional_encoding
 
 from mobox.models import MODEL_REGISTRY
@@ -25,9 +26,12 @@ class Wayformer(nn.Module):
         # self.encoder_agent = MLP(7, d_model)
         # self.encoder_nearby = MLP(7, d_model)
         # self.encoder_map = MLP(236, d_model)
-        self.encoder_agent = VectorNetEncoder(7, d_model)
-        self.encoder_nearby = VectorNetEncoder(7, d_model)
-        self.encoder_map = VectorNetEncoder(4, d_model)
+        # self.encoder_agent = VectorNetEncoder(7, d_model)
+        # self.encoder_nearby = VectorNetEncoder(7, d_model)
+        # self.encoder_map = VectorNetEncoder(4, d_model)
+        self.encoder_agent = TemporalEncoder(7, d_model, 10)
+        self.encoder_nearby = TemporalEncoder(7, d_model, 10)
+        self.encoder_map = TemporalEncoder(4, d_model, 59)
 
         self.transformer = Transformer(d_model)
         self.query_embed = nn.Embedding(M, d_model)
@@ -55,9 +59,9 @@ class Wayformer(nn.Module):
 
     def forward(self, xs):
         # Encoder.
-        x_agent = self.encoder_agent(xs["agent"].tensor)     # [N,1,D]
-        x_nearby = self.encoder_nearby(xs["nearby"].tensor)  # [N,S_a,D]
-        x_map = self.encoder_map(xs["map"].tensor)           # [N,S_r,D]
+        x_agent = self.encoder_agent(xs["agent"])     # [N,1,D]
+        x_nearby = self.encoder_nearby(xs["nearby"])  # [N,S_a,D]
+        x_map = self.encoder_map(xs["map"])           # [N,S_r,D]
 
         # Early fusion.
         # x_agent = x_agent.flatten(1, 2)
