@@ -17,7 +17,7 @@ class TemporalEncoderLayer(nn.Module):
                  embed_dim: int,
                  num_heads: int = 8,
                  dropout: float = 0.1) -> None:
-        super(TemporalEncoderLayer, self).__init__()
+        super().__init__()
         self.self_attn = nn.MultiheadAttention(
             embed_dim=embed_dim, num_heads=num_heads, dropout=dropout)
         self.linear1 = nn.Linear(embed_dim, embed_dim)
@@ -58,7 +58,7 @@ class TemporalEncoder(nn.Module):
                  num_heads: int = 4,
                  num_layers: int = 2,
                  dropout: float = 0.1) -> None:
-        super(TemporalEncoder, self).__init__()
+        super().__init__()
         self.proj_layer = nn.Sequential(
             nn.Linear(input_dim, embed_dim),
             nn.LayerNorm(embed_dim),
@@ -85,9 +85,9 @@ class TemporalEncoder(nn.Module):
 
         N, T, S, D = x.shape
         x = rearrange(x, "N T S D -> T (N S) D")
-        padding_mask = rearrange(padding_mask, "N T S -> (N S) T")
+        padding_mask = rearrange(padding_mask, "N T S -> T (N S) 1")
 
-        x = torch.where(padding_mask.t().unsqueeze(-1), self.padding_token, x)
+        x = torch.where(padding_mask, self.padding_token, x)
         expand_cls_token = self.cls_token.expand(-1, x.shape[1], -1)
         x = torch.cat((x, expand_cls_token), dim=0)
         x = x + self.pos_embed
