@@ -18,7 +18,7 @@ class NestedTensor:
         return self
 
     def cuda(self):
-        return self.to("cuda:0")
+        return self.to(torch.cuda.current_device())
 
     def unbind(self):
         return self.tensor, self.mask
