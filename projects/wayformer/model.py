@@ -10,6 +10,7 @@ from mobox.layers.temporal_encoder import TemporalEncoder
 from mobox.layers.position_encoding import positional_encoding
 
 from mobox.models import MODEL_REGISTRY
+
 from projects.wayformer.loss import MyLoss
 from projects.wayformer.transformer import Transformer
 
@@ -45,12 +46,24 @@ class Wayformer(nn.Module):
         # self.ref = nn.Parameter(d)
         self.register_buffer("ref", d)
 
+        self.apply(self.init_weights)
         self.reset_parameters()
 
     def reset_parameters(self):
         # Reference: https://github.com/IDEA-Research/detrex/blob/main/projects/dab_detr/modeling/dab_detr.py#L129
         nn.init.constant_(self.reg_head.layers[-1].weight, 0)
         nn.init.constant_(self.reg_head.layers[-1].bias, 0)
+
+    def init_weights(self, m):
+        # Reference: https://github.com/facebookresearch/mae/blob/main/models_mae.py#L85
+        if isinstance(m, nn.Linear):
+            # we use xavier_uniform following official JAX ViT:
+            torch.nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.constant_(m.bias, 0)
+            nn.init.constant_(m.weight, 1.0)
 
     def get_pos_encoding(self, x):
         N, L, D = x.shape
